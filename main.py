@@ -1,13 +1,28 @@
+import models, products
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from database import engine
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:3000",
+]
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-@app.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
+app.include_router(products.router, tags=['Products'], prefix='/api/products')
+
+
+@app.get("/api/healthchecker")
+def root():
+    return {"message": "Welcome to FastAPI with SQLAlchemy"}
